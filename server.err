@@ -1,0 +1,4 @@
+2026/05/27 11:07:35 SSO server starting on :8080
+2026/05/27 11:07:35 Issuer: http://localhost:8080
+2026/05/27 11:07:35 Discovery: http://localhost:8080/.well-known/openid-configuration
+exit status 0xffffffff
