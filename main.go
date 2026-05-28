@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"sso/internal/config"
 	"sso/internal/db"
@@ -39,6 +40,22 @@ func main() {
 	mux.HandleFunc("GET /userinfo", h.Userinfo)
 	mux.HandleFunc("POST /userinfo", h.Userinfo)
 
+	if assetDir := firstExistingDir(
+		"../miniBigCProject_Frontend/public/images",
+		"miniBigCProject_Frontend/public/images",
+	); assetDir != "" {
+		mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(assetDir))))
+		log.Printf("Assets: serving %s at /assets/", assetDir)
+	}
+	if brandLogo := firstExistingFile(
+		"../miniBigCProject_Frontend/src/app/Big_C_mini_logo.ico",
+		"miniBigCProject_Frontend/src/app/Big_C_mini_logo.ico",
+	); brandLogo != "" {
+		mux.HandleFunc("GET /assets/brand-logo.ico", func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, brandLogo)
+		})
+	}
+
 	// User self-service registration
 	mux.HandleFunc("POST /register", h.Register)
 
@@ -55,4 +72,22 @@ func main() {
 	if err := http.ListenAndServe(cfg.ServerAddr, mux); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func firstExistingDir(paths ...string) string {
+	for _, path := range paths {
+		if info, err := os.Stat(path); err == nil && info.IsDir() {
+			return path
+		}
+	}
+	return ""
+}
+
+func firstExistingFile(paths ...string) string {
+	for _, path := range paths {
+		if info, err := os.Stat(path); err == nil && !info.IsDir() {
+			return path
+		}
+	}
+	return ""
 }
